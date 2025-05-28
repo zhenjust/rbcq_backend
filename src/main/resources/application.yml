@@ -1,0 +1,82 @@
+logging:
+  level:
+    com.pemc.crss.rbcq: DEBUG
+
+spring:
+  application:
+    name: rbcq
+  datasource:
+    url: jdbc:postgresql://iemop-dev-db.postgres.database.azure.com:5432/metering
+    username: iemop
+    password: "@oPL0YwPCql06WMN3YI3"
+    hikari:
+      auto-commit: false
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate.connection.provider_disables_autocommit: true
+      hibernate.jdbc.time_zone: Asia/Manila
+      hibernate.id.new_generator_mappings: true
+      hibernate.cache.use_second_level_cache: false
+      hibernate.cache.use_query_cache: false
+      hibernate.generate_statistics: false
+      # modify batch size as necessary
+      hibernate.jdbc.batch_size: 100
+      hibernate.order_inserts: true
+      hibernate.order_updates: true
+  security:
+    oauth2:
+      resource:
+        token-info-uri: https://crss-dev.exist.com.ph/uaa/oauth/check_token
+      client:
+        client-id: crss
+        client-secret: crsssecret
+
+management:
+  endpoints:
+    web:
+      base-path: /management
+      exposure:
+        include:
+          [
+            'configprops',
+            'env',
+            'health',
+            'info',
+            'logfile',
+            'loggers',
+            'prometheus',
+            'threaddump'
+          ]
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+        step: 60
+  metrics:
+    enable:
+      http: true
+      jvm: true
+      logback: true
+      process: true
+      system: true
+    distribution:
+      percentiles-histogram:
+        all: true
+      percentiles:
+        all: 0, 0.5, 0.75, 0.95, 0.99, 1.0
+    tags:
+      application: ${spring.application.name}
+
+authorization:
+  server:
+    user-info-uri: https://crss-dev.exist.com.ph/uaa/user
