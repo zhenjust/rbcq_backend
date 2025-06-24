@@ -1,29 +1,35 @@
 logging:
   level:
-    com.pemc.crss.rbcq: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.hibernate: DEBUG
+    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: TRACE
 
 spring:
   application:
     name: rbcq
   datasource:
-    url: jdbc:postgresql://iemop-dev-db.postgres.database.azure.com:5432/metering
-    username: iemop
-    password: "@oPL0YwPCql06WMN3YI3"
+    url: jdbc:oracle:thin:@//192.168.94.161:1604/emdbtest
+    username: crss_tod
+    password: crss_tod
+    driver-class-name: oracle.jdbc.OracleDriver
     hikari:
-      auto-commit: false
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 60000
+      max-lifetime: 1800000
+      pool-name: OracleHikariCP
+      validation-timeout: 5000
+
   jpa:
-    open-in-view: false
+    hibernate:
+      ddl-auto: none
     properties:
-      hibernate.connection.provider_disables_autocommit: true
-      hibernate.jdbc.time_zone: Asia/Manila
-      hibernate.id.new_generator_mappings: true
-      hibernate.cache.use_second_level_cache: false
-      hibernate.cache.use_query_cache: false
-      hibernate.generate_statistics: false
-      # modify batch size as necessary
-      hibernate.jdbc.batch_size: 100
-      hibernate.order_inserts: true
-      hibernate.order_updates: true
+      hibernate:
+        dialect: org.hibernate.dialect.Oracle12cDialect
+        show_sql: true
+        format_sql: true
+
   security:
     oauth2:
       resource:
