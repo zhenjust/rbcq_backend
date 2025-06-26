@@ -29,24 +29,19 @@ import java.util.stream.Collectors;
 public class RbcqAuditService {
 
     private final AuditRepository auditRepository;
-
     private final FilenameDateExtractor filenameDateExtractor;
-
-
     public void importFromCsv(InputStream csvInputStream, String fileName) {
 
-        FilenameValidator.ValidationResult result = FilenameValidator.validate(fileName);
-
-
-        if (result.isValid()) {
-            System.out.println("Region: " + result.getRegion());
-            System.out.println("Start Date: " + result.getDateStart());
-            System.out.println("End Date: " + result.getDateEnd());
-        } else {
-            System.out.println("Validation failed: " + result.getError());
-        }
-
-
+//        FilenameValidator.ValidationResult result = FilenameValidator.validate(fileName);
+//
+//
+//        if (result.isValid()) {
+//            System.out.println("Region: " + result.getRegion());
+//            System.out.println("Start Date: " + result.getDateStart());
+//            System.out.println("End Date: " + result.getDateEnd());
+//        } else {
+//            System.out.println("Validation failed: " + result.getError());
+//        }
 
         List<AuditEntity> entries = new ArrayList<>();
 
