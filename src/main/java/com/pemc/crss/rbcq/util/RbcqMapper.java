@@ -16,8 +16,8 @@ public class RbcqMapper {
         initial.setResourceName(audit.getResourceName());
         initial.setCommodity(audit.getCommodity());
         initial.setMw(audit.getMw());
-        initial.setPublishDate(LocalDateTime.now());      // Current timestamp
-        initial.setPublishBy("USER_ID");         // Replace with actual user logic if needed
+        initial.setPublishDate(LocalDateTime.now());
+        initial.setPublishBy("USER_ID");
 
         return initial;
     }

@@ -8,25 +8,17 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(
-        name = "RBCQ_AUDIT_TEST",
-        schema = "CRSS_TOD",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_audit_unique_fields",
-                        columnNames = { "TIME_INTERVAL", "RESOURCE_NAME", "COMMODITY_TYPE", "FILE_NAME" }
-                )
-        }
+        name = "TEMP_RSPOTQ_AGG_TEST",
+        schema = "CRSS_TOD"
 )
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuditEntity {
-
+public class ReserveSpotEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "audit_seq")
     @SequenceGenerator(
@@ -34,32 +26,20 @@ public class AuditEntity {
             sequenceName = "CRSS_TOD.AUDIT_RBCQ_SEQ", // use schema prefix
             allocationSize = 1
     )
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "TIME_INTERVAL")
     private LocalDateTime timeInterval;
-
     @Column(name = "REGION_NAME")
     private String regionName;
 
-    @Column(name = "RESOURCE_NAME")
-    private String resourceName;
-
     @Column(name = "COMMODITY_TYPE")
     private String commodity;
+    @Column(name = "AS_BUY")
+    private BigDecimal asBuy;
 
-    @Column(name = "MW")
-    private double mw;
+    @Column(name = "AS_SELL")
+    private BigDecimal asSell;
 
-    @Column(name = "FILE_NAME")
-    private String fileName;
-
-    @Column(name = "FILE_DATE")
-    private LocalDateTime fileDate;
-
-    @Column(name = "PUBLISH_DATE")
-    private LocalDateTime publishDate;
-
-    @Column(name = "PUBLISH_BY")
-    private String publishBy;
 }

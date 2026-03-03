@@ -71,47 +71,17 @@ public class RbcqInitialService {
         }
     }
 
-    @Async
+
+
     @Transactional
-    public void runProcessInBackground(LocalDate startDate, LocalDate endDate, String jobId) {
-        this.init(jobId); // set 0%
-        System.out.println("🚀 Async process started for job: " + jobId);
+    public void runInitialization(LocalDateTime start, LocalDateTime end , String userId) {
 
-        LocalDateTime start = startDate.atTime(0, 5);
-        LocalDateTime end = endDate.atStartOfDay();
+        log.info("🚀 Async job started: {}");
 
-        Regions[] regions = Regions.values();
-        for (int i = 0; i < regions.length; i++) {
-            Regions region = regions[i];
+        initialRepository.insertToRbcqInitial(start ,end, userId);
 
-            List<AuditEntity> results = auditRepository.findLatestEntriesForRegion(
-                    region.name(), start, end
-            );
-
-            List<InitialEntity> initialEntities = results.stream()
-                    .map(RbcqMapper::mapAuditToInitial)
-                    .collect(Collectors.toList());
-
-            initialRepository.saveAll(initialEntities);
-
-            int progress = (int) (((i + 1) / (double) regions.length) * 90) + 10;
-            this.update(jobId, progress);
-
-            System.out.println("✅ Progress update for job " + jobId + ": " + progress + "%");
-        }
-
-        this.update(jobId, 100); // set final progress
-
-        // ✅ Delay cleanup so frontend can still fetch 100%
-        try {
-            Thread.sleep(3000); // wait 3 seconds before cleanup
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        this.complete(jobId); // optional cleanup
-        System.out.println("✅ Job " + jobId + " completed and removed.");
     }
+
 
 
 }

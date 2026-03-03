@@ -7,7 +7,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class InitializationRequestDTO {
+public class RequestDTO {
 
     private String processType;
 
@@ -17,4 +17,6 @@ public class InitializationRequestDTO {
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDatetime;
+
+    private String UserId;
 }

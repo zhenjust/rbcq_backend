@@ -1,14 +1,25 @@
 logging:
   level:
-    com.zaxxer.hikari: DEBUG
-    org.hibernate: DEBUG
-    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: TRACE
+    root: INFO
+
+    # Your application logs
+    com.pemc.crss: INFO
+
+    # Connection pool (only WARN unless debugging pool issues)
+    com.zaxxer.hikari: WARN
+
+    # Hibernate – keep quiet
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql: ERROR
+    org.hibernate.engine.jdbc.spi.SqlExceptionHelper: ERROR
+
 
 spring:
   application:
     name: rbcq
   datasource:
-    url: jdbc:oracle:thin:@//192.168.94.161:1604/emdbtest
+    url: jdbc:oracle:thin:@//192.168.41.33:1604/EMDBTST
     username: crss_tod
     password: crss_tod
     driver-class-name: oracle.jdbc.OracleDriver
@@ -27,8 +38,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.Oracle12cDialect
-        show_sql: true
-        format_sql: true
+        show_sql: false
+        format_sql: false
 
   security:
     oauth2:
@@ -86,3 +97,10 @@ management:
 authorization:
   server:
     user-info-uri: https://crss-dev.exist.com.ph/uaa/user
+
+rbcq:
+  storage:
+    upload-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath
+    processed-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath/processed
+    rejected-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath/rejected
+

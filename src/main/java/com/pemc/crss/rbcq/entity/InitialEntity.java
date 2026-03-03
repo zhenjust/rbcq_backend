@@ -39,7 +39,7 @@ public class InitialEntity {
     @Column(name = "COMMODITY")
     private String commodity;
     @Column(name = "MW")
-    private BigDecimal mw;
+    private double mw;
     @Column(name = "PUBLISH_DATE")
     private LocalDateTime publishDate;
     @Column(name = "PUBLISH_BY")

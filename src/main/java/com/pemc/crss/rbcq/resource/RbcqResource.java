@@ -1,7 +1,8 @@
 package com.pemc.crss.rbcq.resource;
 
-import com.pemc.crss.rbcq.dto.InitializationRequestDTO;
+import com.pemc.crss.rbcq.dto.RequestDTO;
 import com.pemc.crss.rbcq.service.RbcqAuditService;
+import com.pemc.crss.rbcq.service.RbcqFinalizeService;
 import com.pemc.crss.rbcq.service.RbcqInitialService;
 import com.pemc.crss.rbcq.util.FilenameValidator;
 import lombok.AllArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -23,6 +25,7 @@ public class RbcqResource {
 
     private final RbcqAuditService rbcqAuditService;
     private final RbcqInitialService rbcqInitialService;
+    private final RbcqFinalizeService rbcqFinalizeService;
 
     @PostMapping("/import")
     public ResponseEntity<String> importCsv(@RequestParam("file") MultipartFile file) {
@@ -57,22 +60,82 @@ public class RbcqResource {
         }
     }
 
-    @PostMapping("/initialize")
-    public ResponseEntity<String> processInitialize(@RequestBody InitializationRequestDTO request) {
-        try {
-            LocalDate start = request.getStartDatetime();
-            LocalDate end = request.getEndDatetime();
-            String jobId = UUID.randomUUID().toString();
-            rbcqInitialService.runProcessInBackground(start, end, jobId);
+//    @PostMapping("/initialize")
+//    public ResponseEntity<String> processInitialize(@RequestBody InitializationRequestDTO request) {
+//        try {
+//
+//
+//            LocalDateTime start =
+//                    request.getStartDatetime().atTime(0, 5);   // ✅ 00:05
+//
+//            LocalDateTime end =
+//                    request.getEndDatetime()
+//                            .plusDays(1)
+//                            .atStartOfDay();
+//            String jobId = UUID.randomUUID().toString();
+//            rbcqInitialService.runAsyncInitialization(start, end, jobId);
+//
+//
+//
+//            return ResponseEntity.ok(jobId);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("Initialization failed: " + ex.getMessage());
+//        }
+//    }
 
-            return ResponseEntity.ok(jobId);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Initialization failed: " + ex.getMessage());
-        }
+    @PostMapping("/finalize")
+    public ResponseEntity<String> finalizeRbcq(
+            @RequestBody RequestDTO request) {
+
+        LocalDateTime from =
+                request.getStartDatetime().atTime(0, 5);   // 2025-10-08 00:05
+
+        LocalDateTime to =
+                request.getEndDatetime().atStartOfDay();   // 2025-10-09 00:00
+
+        String userId = request.getUserId();
+
+        rbcqFinalizeService.finalizeRbcq(from, to, userId);
+
+        return ResponseEntity.ok("RBCQ finalized successfully");
     }
 
+
+    @PostMapping("/initialize")
+    public ResponseEntity<String> initializeRbcq(
+            @RequestBody RequestDTO request) {
+
+        LocalDateTime from =
+                request.getStartDatetime().atTime(0, 5);   // 2025-10-08 00:05
+
+        LocalDateTime to =
+                request.getEndDatetime().atStartOfDay();   // 2025-10-09 00:00
+
+        String userId = request.getUserId();
+
+        rbcqInitialService.runInitialization(from, to, userId);
+
+        return ResponseEntity.ok("RBCQ finalized successfully");
+    }
+
+    @PostMapping("/ap_flag")
+    public ResponseEntity<String> processApFlag(
+            @RequestBody RequestDTO request) {
+
+        LocalDateTime from =
+                request.getStartDatetime().atTime(0, 5);   // 2025-10-08 00:05
+
+        LocalDateTime to =
+                request.getEndDatetime().atStartOfDay();   // 2025-10-09 00:00
+
+        String userId = request.getUserId();
+
+        rbcqFinalizeService.processAP(from, to, userId);
+
+        return ResponseEntity.ok("AP Flagging successfully");
+    }
 
 
     @GetMapping("/initialize/progress/{jobId}")

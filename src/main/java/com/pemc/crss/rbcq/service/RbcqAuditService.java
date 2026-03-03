@@ -91,7 +91,7 @@ public class RbcqAuditService {
                 entry.setRegionName(parts[1].trim());
                 entry.setResourceName(parts[2].trim());
                 entry.setCommodity(parts[3].trim());
-                entry.setMw(new BigDecimal(parts[4].trim()));
+                entry.setMw(Double.parseDouble(parts[4].trim()));
                 entry.setFileName(fileName); // ✅
                 entry.setFileDate(fileDateTime);
                 entry.setPublishDate(LocalDateTime.now());

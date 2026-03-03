@@ -31,7 +31,7 @@ public interface AuditRepository extends JpaRepository<AuditEntity,Long> {
             "  AND a2.time_interval BETWEEN :start AND :end " +
             "  GROUP BY TO_NUMBER(TO_CHAR(a2.time_interval - INTERVAL '5' MINUTE, 'YYYYMMDD')) " +
             ") " +
-            "AND a.commodity IN ('REG', 'CON', 'DIS')",
+            "AND a.commodity_type IN ('REG', 'CON', 'DIS')",
             nativeQuery = true)
     List<AuditEntity> findLatestEntriesForRegion(
             @Param("region") String region,
