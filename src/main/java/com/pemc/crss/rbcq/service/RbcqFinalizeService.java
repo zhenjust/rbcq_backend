@@ -37,20 +37,6 @@ public class RbcqFinalizeService {
         log.info("GROUPED rows inserted = {}", rowsInserted);
     }
 
-
-
-    private BigDecimal calculateOpresBcq(BigDecimal schedMw, BigDecimal bcqMw, BigDecimal opresQ) {
-        if (bcqMw == null) return BigDecimal.ZERO;
-        if (schedMw.compareTo(bcqMw) >= 0) return bcqMw;
-        if (opresQ == null) return bcqMw;
-        if (opresQ.compareTo(bcqMw) >= 0) return schedMw;
-        if (opresQ.compareTo(bcqMw) < 0) return bcqMw.subtract(opresQ).add(schedMw.min(opresQ));
-        return bcqMw;
-    }
-
-
-
-
     /* ============================================================
        PHASE 2 — FINAL RBCQ (SQL FINAL SELECT)
        ============================================================ */
@@ -68,117 +54,20 @@ public class RbcqFinalizeService {
         log.info("=== End RBCQ Finalization ===");
     }
     @Transactional
-    public void processAP(LocalDateTime from, LocalDateTime to, String userId) {
-        log.info("=== Start RBCQ Finalization ===");
+    public void processAP(LocalDateTime from, LocalDateTime to, String userId,String region) {
+        log.info("=== Start RBCQ AP Flagging ===");
 
         calculateAndSave(from,to);
         rbcqFinalRepository.deleteByTimeIntervalRange(from,to);
 
-        int rowsInserted = rbcqFinalRepository.insertToRbcqFinal(from,to,userId);
+        int rowsInserted = rbcqFinalRepository.applyAPFlag(from,to,userId);
+        int rowsInsertedAP = rbcqFinalRepository.insertAPFlag(from,to,region,userId);
 
-        log.info("Rows inserted into RBCQ_FINALIZE_TEST: {}", rowsInserted);
+        log.info("Rows inserted into AP FLAG: {}", rowsInserted);
 
-        log.info("=== End RBCQ Finalization ===");
+        log.info("=== End RBCQ AP FLAGGING ===");
     }
 
 
-    /* ============================================================
-       HELPERS
-       ============================================================ */
-
-    private String key(LocalDateTime t, String r, String c) {
-        return t + "|" + r + "|" + c;
-    }
-    private double computeOpresBcqSqlExact(
-            double sched,
-            InitialEntity b,
-            OpresRTDEntity o
-    ) {
-        double bcq = (b == null) ? 0.0 : b.getMw();
-
-        if (b == null) return 0.0;
-
-        if (sched >= bcq) return bcq;
-
-        if (o == null) return bcq;
-
-        double opres = o.getQuantity2();
-
-        if (opres >= bcq) return sched;
-
-        if (opres < bcq) {
-            return (bcq - opres) + Math.min(sched, opres);
-        }
-
-        return bcq;
-    }
-
-
-    private String normalizeRegion(String region) {
-        switch (region) {
-            case "CLUZ": return "LUZON";
-            case "CVIS": return "VISAYAS";
-            case "CMIN": return "MINDANAO";
-            default: return "NONE";  // 🔹 changed from region → NONE
-        }
-    }
-
-    private String normalizeCommodity(String c) {
-        if (c == null) return "NONE"; // optional safety
-        switch (c.toUpperCase()) {
-            case "REG": return "RU";
-            case "CON": return "FR";
-            case "DIS": return "DR";
-            default: return c.toUpperCase(); // matches SQL
-        }
-    }
-
-    private double computeOpresBqc(double sched, InitialEntity b, OpresRTDEntity o) {
-        double bcq = b.getMw();
-
-        if (sched >= bcq) return bcq;
-        if (o == null) return bcq;
-        if (o.getQuantity2() >= bcq) return sched;
-
-        return (bcq - o.getQuantity2()) + Math.min(sched, o.getQuantity2());
-    }
-
-    private double computeAsBuy(double sched, double opresBcq) {
-        return round(sched < opresBcq ? sched - opresBcq : 0);
-    }
-
-    private double computeAsSell(double sched, double opresBcq) {
-        return round(sched > opresBcq ? sched - opresBcq : 0);
-    }
-
-    private double round(double v) {
-        return Math.round(v * 10.0) / 10.0;
-    }
-
-    public static double calculateFinalOpresBcq(
-            double sched,
-            double opresBcq,
-            BigDecimal asBuy,
-            BigDecimal asSell) {
-
-        if (
-                asSell.compareTo(asBuy.abs()) < 0 &&
-                        sched < opresBcq &&
-                        asBuy.compareTo(BigDecimal.ZERO) != 0
-        ) {
-
-            BigDecimal result =
-                    BigDecimal.valueOf(sched)
-                            .add(
-                                    asSell.multiply(
-                                            BigDecimal.valueOf(sched - opresBcq)
-                                    ).divide(asBuy, 10, BigDecimal.ROUND_HALF_UP)
-                            );
-
-            return Math.round(result.doubleValue() * 10.0) / 10.0;
-        }
-
-        return Math.round(opresBcq * 10.0) / 10.0;
-    }
 
 }

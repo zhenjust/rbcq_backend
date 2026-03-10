@@ -90,10 +90,10 @@ public class RbcqResource {
             @RequestBody RequestDTO request) {
 
         LocalDateTime from =
-                request.getStartDatetime().atTime(0, 5);   // 2025-10-08 00:05
+                request.getStartDatetime();
 
         LocalDateTime to =
-                request.getEndDatetime().atStartOfDay();   // 2025-10-09 00:00
+                request.getEndDatetime();
 
         String userId = request.getUserId();
 
@@ -108,10 +108,10 @@ public class RbcqResource {
             @RequestBody RequestDTO request) {
 
         LocalDateTime from =
-                request.getStartDatetime().atTime(0, 5);   // 2025-10-08 00:05
+                request.getStartDatetime();
 
         LocalDateTime to =
-                request.getEndDatetime().atStartOfDay();   // 2025-10-09 00:00
+                request.getEndDatetime();
 
         String userId = request.getUserId();
 
@@ -124,15 +124,17 @@ public class RbcqResource {
     public ResponseEntity<String> processApFlag(
             @RequestBody RequestDTO request) {
 
+
+
         LocalDateTime from =
-                request.getStartDatetime().atTime(0, 5);   // 2025-10-08 00:05
+                request.getStartDatetime();
 
         LocalDateTime to =
-                request.getEndDatetime().atStartOfDay();   // 2025-10-09 00:00
+                request.getEndDatetime();   // 2025-10-09 00:00
 
         String userId = request.getUserId();
 
-        rbcqFinalizeService.processAP(from, to, userId);
+        rbcqFinalizeService.processAP(from, to, userId,request.getRegion());
 
         return ResponseEntity.ok("AP Flagging successfully");
     }

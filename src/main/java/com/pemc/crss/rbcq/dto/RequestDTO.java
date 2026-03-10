@@ -5,6 +5,7 @@ import lombok.Data;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class RequestDTO {
@@ -12,11 +13,13 @@ public class RequestDTO {
     private String processType;
 
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate startDatetime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+    private LocalDateTime startDatetime;
 
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate endDatetime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
+    private LocalDateTime endDatetime;
 
     private String UserId;
+
+    private String Region;
 }
