@@ -34,7 +34,7 @@ public interface InitialRepository extends JpaRepository <InitialEntity,Long> {
 
                             "SELECT TIME_INTERVAL, REGION_NAME, RESOURCE_NAME, COMMODITY_TYPE, " +
                             "ROUND(MW, 1) AS MW, " +
-                            "SYSDATE AS PUBLISHED_DATE, " +
+                            "SYSDATE AS PUBLISH_DATE, " +
                             ":userId AS PUBLISHED_BY " +
                             "FROM RBCQ_AUDIT_TEST " +
                             "WHERE TIME_INTERVAL >= :from " +
@@ -55,7 +55,7 @@ public interface InitialRepository extends JpaRepository <InitialEntity,Long> {
 
                             "SELECT TIME_INTERVAL, REGION_NAME, RESOURCE_NAME, COMMODITY_TYPE, " +
                             "ROUND(MW, 1) AS MW, " +
-                            "SYSDATE AS PUBLISHED_DATE, " +
+                            "SYSDATE AS PUBLISH_DATE, " +
                             ":userId AS PUBLISHED_BY " +
                             "FROM RBCQ_AUDIT_TEST " +
                             "WHERE TIME_INTERVAL >= :from " +
@@ -76,7 +76,7 @@ public interface InitialRepository extends JpaRepository <InitialEntity,Long> {
 
                             "SELECT TIME_INTERVAL, REGION_NAME, RESOURCE_NAME, COMMODITY_TYPE, " +
                             "ROUND(MW, 1) AS MW, " +
-                            "SYSDATE AS PUBLISHED_DATE, " +
+                            "SYSDATE AS PUBLISH_DATE, " +
                             ":userId AS PUBLISHED_BY " +
                             "FROM RBCQ_AUDIT_TEST " +
                             "WHERE TIME_INTERVAL >= :from " +

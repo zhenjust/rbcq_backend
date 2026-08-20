@@ -41,6 +41,8 @@ spring:
         show_sql: false
         format_sql: false
 
+  redis:
+    host: redis-master.iemop.svc.cluster.local
   security:
     oauth2:
       resource:
@@ -98,9 +100,26 @@ authorization:
   server:
     user-info-uri: https://crss-dev.exist.com.ph/uaa/user
 
+
+settlement:
+  url: jdbc:postgresql://iemop-dev-db.postgres.database.azure.com:5432/settlement
+  username: iemop
+  password: "@oPL0YwPCql06WMN3YI3"
+
+registration:
+  url: jdbc:postgresql://iemop-dev-db.postgres.database.azure.com:5432/crss?currentSchema=registration
+  username: iemop
+  password: "@oPL0YwPCql06WMN3YI3"
+
+
+
 rbcq:
   storage:
     upload-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath
     processed-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath/processed
     rejected-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath/rejected
+
+app:
+  api-key: i3m0p
+
 
