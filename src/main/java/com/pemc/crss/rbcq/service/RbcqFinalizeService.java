@@ -1,8 +1,10 @@
 package com.pemc.crss.rbcq.service;
 
 import com.pemc.crss.rbcq.dto.RspotAggResult;
+import com.pemc.crss.rbcq.dto.ViewDTO;
 import com.pemc.crss.rbcq.entity.*;
 import com.pemc.crss.rbcq.repository.*;
+import com.pemc.crss.rbcq.util.SecurityAuditorAware;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,12 @@ public class RbcqFinalizeService {
     private final ReserveSpotRepository tempAggRepo;
     private final RbcqFinalRepository rbcqFinalRepository;
 
+    private final SecurityAuditorAware securityAuditorAware;
+
+    private final CRSSRepository crssRepository;
+
+    private ViewDTO viewDTO;
+
     /* ============================================================
        PHASE 1 — TEMP_RSPOTQ_AGG (AS_BUY / AS_SELL)
        ============================================================ */
@@ -37,16 +45,24 @@ public class RbcqFinalizeService {
         log.info("GROUPED rows inserted = {}", rowsInserted);
     }
 
-    /* ============================================================
-       PHASE 2 — FINAL RBCQ (SQL FINAL SELECT)
-       ============================================================ */
+
     @Transactional
     public void finalizeRbcq(LocalDateTime from, LocalDateTime to, String userId) {
         log.info("=== Start RBCQ Finalization ===");
-
+        System.out.println(from);
+        System.out.println(to);
+        System.out.println(userId);
         calculateAndSave(from,to);
+
+        log.info("RBCQ_INITIAL_TEST count = {}", rbcqFinalRepository.countRbcqInitial(from,to));
+        log.info("EMM_HISV_OUTPUT_BID_RTD count = {}", rbcqFinalRepository.countOutputBid(from,to));
+        log.info("OPRES_RTD_TEST count = {}", rbcqFinalRepository.countOpres(from,to));
+        log.info("TEMP_RSPOTQ_AGG_TEST count = {}", rbcqFinalRepository.countTempAgg(from,to));
+
+        rbcqFinalRepository.deleteByTimeIntervalRangeAP(from,to);
         rbcqFinalRepository.deleteByTimeIntervalRange(from,to);
 
+        int rowsInsertedAP = rbcqFinalRepository.insertAPFlag(from,to,null,userId,"N");
         int rowsInserted = rbcqFinalRepository.insertToRbcqFinal(from,to,userId);
 
         log.info("Rows inserted into RBCQ_FINALIZE_TEST: {}", rowsInserted);
@@ -59,15 +75,38 @@ public class RbcqFinalizeService {
 
         calculateAndSave(from,to);
         rbcqFinalRepository.deleteByTimeIntervalRange(from,to);
+        rbcqFinalRepository.deleteByTimeIntervalRangeAP(from,to);
+        log.info("start: {}", from);
+        log.info("end: {}", to);
+        log.info("region: {}", region);
 
-        int rowsInserted = rbcqFinalRepository.applyAPFlag(from,to,userId);
-        int rowsInsertedAP = rbcqFinalRepository.insertAPFlag(from,to,region,userId);
+
+        int rowsInserted = rbcqFinalRepository.applyAPFlag(from,to,region,userId);
+        int rowsInsertedAP = rbcqFinalRepository.insertAPFlag(from,to,region,userId,"Y");
 
         log.info("Rows inserted into AP FLAG: {}", rowsInserted);
 
         log.info("=== End RBCQ AP FLAGGING ===");
     }
+//    public List<FinalizeEntity> viewFinalize(
+//            LocalDateTime from,
+//            LocalDateTime to,
+//            String region,
+//            String userId) {
+//
+//        return rbcqFinalRepository.viewFinalize(from, to, region, userId);
+//    }
 
+    public List<ViewDTO> getFinalData(LocalDateTime startDate, LocalDateTime endDate) {
 
+        Long linkedUserId = securityAuditorAware.getCurrentAuditor()
+                .orElseThrow(() -> new RuntimeException("User not authenticated"));
+
+        List<ViewDTO> result = crssRepository.getFinalData(linkedUserId, startDate, endDate);
+
+        System.out.println("Result: " + result);
+
+        return result;
+    }
 
 }

@@ -49,34 +49,17 @@ public class RbcqInitialService {
         progressMap.remove(jobId);
     }
 
-    @Transactional
-    public void processInitialize(LocalDate startDate, LocalDate endDate) {
-        LocalDateTime startDateTime = startDate.atTime(0, 5);
-        LocalDateTime endDateTime = endDate.atStartOfDay();
 
-        initialRepository.deleteByTimeIntervalRange(startDateTime, endDateTime);
-
-        for (Regions region : Regions.values()) {
-            List<AuditEntity> results = auditRepository.findLatestEntriesForRegion(
-                    region.name(),
-                    startDateTime,
-                    endDateTime
-            );
-
-            List<InitialEntity> initialEntities = results.stream()
-                    .map(RbcqMapper::mapAuditToInitial)
-                    .collect(Collectors.toList());
-
-            initialRepository.saveAll(initialEntities);
-        }
-    }
 
 
 
     @Transactional
     public void runInitialization(LocalDateTime start, LocalDateTime end , String userId) {
 
-        log.info("🚀 Async job started: {}");
+        log.info("🚀 Initialize Started: {}");
+        log.info("🚀 start: {},",start);
+        log.info("🚀 and: {}",end);
+        initialRepository.deleteByTimeIntervalRange(start, end);
 
         initialRepository.insertToRbcqInitial(start ,end, userId);
 

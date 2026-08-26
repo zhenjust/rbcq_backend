@@ -48,4 +48,41 @@ public class UserInfoService {
 
         throw new RuntimeException("Failed to extract 'name' from the /uaa/user response.");
     }
+
+    public Long getUserIdFromToken(String accessToken) {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                userInfoUri,
+                new HttpEntity<>(headers),
+                Map.class
+        );
+
+        Map<String, Object> responseBody = response.getBody();
+
+        if (responseBody != null && responseBody.containsKey("user")) {
+
+            Map<String, Object> user = (Map<String, Object>) responseBody.get("user");
+
+            if (user.containsKey("principal")) {
+                Map<String, Object> principal = (Map<String, Object>) user.get("principal");
+
+                if (principal.containsKey("id")) {
+                    Object idObj = principal.get("id");
+
+                    if (idObj instanceof Integer) {
+                        return ((Integer) idObj).longValue();
+                    } else if (idObj instanceof Long) {
+                        return (Long) idObj;
+                    } else if (idObj instanceof String) {
+                        return Long.parseLong((String) idObj);
+                    }
+                }
+            }
+        }
+
+        throw new RuntimeException("Failed to extract 'id' from token response.");
+    }
 }

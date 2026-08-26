@@ -26,6 +26,7 @@
         <!-- Dependency Versions -->
         <spring-security-oauth2.version>2.3.8.RELEASE</spring-security-oauth2.version>
         <lombok.version>1.18.38</lombok.version>
+        <spring-redis.version>1.4.1.RELEASE</spring-redis.version>
 
         <!-- Plugin Versions -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -50,6 +51,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>${spring-redis.version}</version>
+        </dependency>
+
 
         <!-- Database -->
         <dependency>

@@ -1,6 +1,8 @@
 package com.pemc.crss.rbcq.resource;
 
 import com.pemc.crss.rbcq.dto.RequestDTO;
+import com.pemc.crss.rbcq.dto.ViewDTO;
+import com.pemc.crss.rbcq.entity.FinalizeEntity;
 import com.pemc.crss.rbcq.service.RbcqAuditService;
 import com.pemc.crss.rbcq.service.RbcqFinalizeService;
 import com.pemc.crss.rbcq.service.RbcqInitialService;
@@ -15,6 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -117,7 +121,7 @@ public class RbcqResource {
 
         rbcqInitialService.runInitialization(from, to, userId);
 
-        return ResponseEntity.ok("RBCQ finalized successfully");
+        return ResponseEntity.ok("RBCQ initialize successfully");
     }
 
     @PostMapping("/ap_flag")
@@ -130,7 +134,7 @@ public class RbcqResource {
                 request.getStartDatetime();
 
         LocalDateTime to =
-                request.getEndDatetime();   // 2025-10-09 00:00
+                request.getEndDatetime();
 
         String userId = request.getUserId();
 
@@ -144,6 +148,35 @@ public class RbcqResource {
     public ResponseEntity<Integer> getProgress(@PathVariable String jobId) {
         int progress = rbcqInitialService.getProgress(jobId);
         return ResponseEntity.ok(progress);
+    }
+
+//    @GetMapping("/finalized")
+//    public ResponseEntity<List<FinalizeEntity>> getFinalizedData(
+//            @RequestParam String from,
+//            @RequestParam String to,
+//            @RequestParam(defaultValue = "ALL") String region,
+//            @RequestParam String userId
+//    ) {
+//
+//        LocalDateTime fromDate = LocalDateTime.parse(from);
+//        LocalDateTime toDate = LocalDateTime.parse(to);
+//
+//        return ResponseEntity.ok(
+//                rbcqFinalizeService.viewFinalize(fromDate, toDate, region, userId)
+//        );
+//    }
+
+    @GetMapping("/finalized")
+    public List<ViewDTO> getMtns(
+            @RequestParam String startDate,
+            @RequestParam String endDate
+
+    ) {
+
+        LocalDateTime fromDate = LocalDateTime.parse(startDate);
+        LocalDateTime toDate = LocalDateTime.parse(endDate);
+
+        return rbcqFinalizeService.getFinalData( fromDate,toDate);
     }
 
 
