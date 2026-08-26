@@ -16,8 +16,6 @@ logging:
 
 
 spring:
-  application:
-    name: rbcq
   datasource:
     url: jdbc:oracle:thin:@//192.168.41.33:1604/EMDBTST
     username: crss_tod
