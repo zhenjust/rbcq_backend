@@ -20,7 +20,7 @@
         <start-class>com.pemc.crss.rbcq.RbcqApplication</start-class>
 
         <!-- Docker Properties -->
-        <jib.image>eclipse-temurin:11-jre-noble</jib.image>
+        <jib.image>exist.azurecr.io/eclipse-temurin:11-jre-noble</jib.image>
         <jib.architecture>amd64</jib.architecture>
 
         <!-- Dependency Versions -->
