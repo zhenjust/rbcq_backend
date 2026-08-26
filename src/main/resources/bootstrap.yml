@@ -1,6 +1,6 @@
 spring:
   application:
-    name: rbcq
+    name: crss-rbcq
   cloud:
     config:
       uri: http://crss-config-service:8080
