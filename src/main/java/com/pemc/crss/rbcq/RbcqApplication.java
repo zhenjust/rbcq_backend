@@ -2,13 +2,13 @@ package com.pemc.crss.rbcq;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = RedisRepositoriesAutoConfiguration.class)
 @EnableJpaAuditing
 @EnableAsync
-//@EntityScan(basePackages = "com.pemc.crss.rbcq.entity")
 public class RbcqApplication {
 
     public static void main(String[] args) {
