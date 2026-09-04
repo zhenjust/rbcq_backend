@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: crss-rbcq
+  cloud:
+    config:
+      uri: http://crss-config-service:8080
+      username: crssconfig
+      password: crssconfigpassword

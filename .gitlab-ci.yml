@@ -1,0 +1,75 @@
+image: exist.azurecr.io/eclipse-temurin:11-jdk-alpine
+
+variables:
+  MAVEN_USER_HOME: ${CI_PROJECT_DIR}/.maven
+  SERVICE_NAME: crss-rbcq-service
+
+before_script:
+  - mkdir -p $MAVEN_USER_HOME && echo "<settings xmlns='http://maven.apache.org/SETTINGS/1.0.0' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd'><servers><server><id>iemop-releases</id><username>$EXIST_NEXUS_USERNAME</username><password>$EXIST_NEXUS_PASSWORD</password></server><server><id>iemop-snapshots</id><username>$EXIST_NEXUS_USERNAME</username><password>$EXIST_NEXUS_PASSWORD</password></server></servers></settings>" > $MAVEN_USER_HOME/settings.xml
+
+cache:
+  paths:
+    - .maven/
+
+.default_rules: &default_rules
+  rules:
+    - if: $CI_DEPLOY_FREEZE == null && $CI_PIPELINE_SOURCE != "web" && ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH =~ /RC[0-9]+$/)
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+stages:
+  - prepare
+  - build
+  - package
+  - release
+  - deploy
+
+compute_version:
+  stage: prepare
+  script:
+    - echo "APP_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)" > build.env
+  <<: *default_rules
+  artifacts:
+    reports:
+      dotenv: build.env
+
+maven-compile:
+  stage: build
+  script:
+    - ./mvnw -ntp compile -settings $MAVEN_USER_HOME/settings.xml -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - "**/target/classes/"
+      - "**/target/generated-sources/"
+    expire_in: 1 day
+  <<: *default_rules
+
+maven-package:
+  stage: package
+  script:
+    - ./mvnw -ntp install verify -am -settings $MAVEN_USER_HOME/settings.xml -Dmaven.repo.local=$MAVEN_USER_HOME
+  artifacts:
+    paths:
+      - "**/target/classes/"
+      - "**/target/*.jar"
+    reports:
+      junit:
+        - target/surefire-reports/TEST-*.xml
+    expire_in: 1 day
+  <<: *default_rules
+
+docker-push:
+  stage: release
+  script:
+    - ./mvnw -ntp jib:build -Djib.to.image=$EXIST_REGISTRY/iemop/$SERVICE_NAME:$APP_VERSION-b${CI_COMMIT_SHA:0:7} $JIB_FROM -Djib.from.auth.username=$EXIST_REGISTRY_USERNAME -Djib.from.auth.password=$EXIST_REGISTRY_PASSWORD -Djib.to.auth.username=$EXIST_REGISTRY_USERNAME -Djib.to.auth.password=$EXIST_REGISTRY_PASSWORD -Dmaven.repo.local=$MAVEN_USER_HOME
+  <<: *default_rules
+
+deploy:
+  stage: deploy
+  variables:
+    APP_HASH: ${CI_COMMIT_SHA}
+    APP_VERSION: ${APP_VERSION}
+  trigger:
+    project: exist-software-labs/iemop/crss/gitops
+    branch: dev-uat
+    strategy: depend
+  <<: *default_rules
