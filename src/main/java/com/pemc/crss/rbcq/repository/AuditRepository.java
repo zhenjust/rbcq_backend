@@ -40,6 +40,18 @@ public interface AuditRepository extends JpaRepository<AuditEntity,Long> {
     );
 
 
+    @Query(value =
+            "SELECT COUNT(DISTINCT a.REGION_NAME) " +
+                    "FROM CRSS_TOD.RBCQ_AUDIT_TEST a " +
+                    "WHERE a.REGION_NAME IN ('LUZON', 'VISAYAS', 'MINDANAO') " +
+                    "AND a.TIME_INTERVAL >= :start " +
+                    "AND a.TIME_INTERVAL < :end",
+            nativeQuery = true)
+    int countRegionsByTradingDate(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
 
 
 

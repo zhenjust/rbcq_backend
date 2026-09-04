@@ -59,13 +59,17 @@ public class RbcqFinalizeService {
         log.info("OPRES_RTD_TEST count = {}", rbcqFinalRepository.countOpres(from,to));
         log.info("TEMP_RSPOTQ_AGG_TEST count = {}", rbcqFinalRepository.countTempAgg(from,to));
 
-        rbcqFinalRepository.deleteByTimeIntervalRangeAP(from,to);
         rbcqFinalRepository.deleteByTimeIntervalRange(from,to);
+        log.info("done delete");
 
-        int rowsInsertedAP = rbcqFinalRepository.insertAPFlag(from,to,null,userId,"N");
+
         int rowsInserted = rbcqFinalRepository.insertToRbcqFinal(from,to,userId);
+        log.info("start apply ap flag");
+        int rowsInsertedFlag = rbcqFinalRepository.applyAPFlag(from,to,userId);
+        log.info("done apply ap flag");
 
         log.info("Rows inserted into RBCQ_FINALIZE_TEST: {}", rowsInserted);
+        log.info("Rows inserted into RBCQ_FINALIZE_TEST as AP: {}", rowsInsertedFlag);
 
         log.info("=== End RBCQ Finalization ===");
     }
@@ -74,17 +78,16 @@ public class RbcqFinalizeService {
         log.info("=== Start RBCQ AP Flagging ===");
 
         calculateAndSave(from,to);
-        rbcqFinalRepository.deleteByTimeIntervalRange(from,to);
         rbcqFinalRepository.deleteByTimeIntervalRangeAP(from,to);
         log.info("start: {}", from);
         log.info("end: {}", to);
         log.info("region: {}", region);
 
 
-        int rowsInserted = rbcqFinalRepository.applyAPFlag(from,to,region,userId);
+
         int rowsInsertedAP = rbcqFinalRepository.insertAPFlag(from,to,region,userId,"Y");
 
-        log.info("Rows inserted into AP FLAG: {}", rowsInserted);
+        log.info("Rows inserted into AP FLAG: {}", rowsInsertedAP);
 
         log.info("=== End RBCQ AP FLAGGING ===");
     }
@@ -104,7 +107,6 @@ public class RbcqFinalizeService {
 
         List<ViewDTO> result = crssRepository.getFinalData(linkedUserId, startDate, endDate);
 
-        System.out.println("Result: " + result);
 
         return result;
     }
