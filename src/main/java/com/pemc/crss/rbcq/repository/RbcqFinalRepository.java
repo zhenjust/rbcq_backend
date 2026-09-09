@@ -1,5 +1,8 @@
 package com.pemc.crss.rbcq.repository;
 
+import com.pemc.crss.rbcq.dto.APDTO;
+import com.pemc.crss.rbcq.dto.APProjection;
+import com.pemc.crss.rbcq.dto.ViewDTO;
 import com.pemc.crss.rbcq.entity.FinalizeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -9,6 +12,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -271,21 +276,20 @@ public interface RbcqFinalRepository extends JpaRepository<FinalizeEntity,Long> 
     );
 
 
-
-//    // AP FLAG OVERRIDE
-//                            "WHERE " +
-//                                    "    NOT EXISTS ( " +
-//                                    "        SELECT 1 " +
-//                                    "        FROM CRSS_AP_FLAG_RTD_TEST ap " +
-//                                    "        WHERE ap.TIME_INTERVAL = a.TIME_INTERVAL " +
-//                                    "          AND ap.REGION = a.REGION_NAME " +
-//                                    "    ) " +
-//                                    "    OR EXISTS ( " +
-//                                    "        SELECT 1 " +
-//                                    "        FROM CRSS_AP_FLAG_RTD_TEST ap " +
-//                                    "        WHERE ap.TIME_INTERVAL = a.TIME_INTERVAL " +
-//                                    "          AND ap.REGION = a.REGION_NAME " +
-//                                    "          AND ap.FLAG = 'N' " +
-
+    @Query(
+            value =
+                    "SELECT " +
+                            "    r.TIME_INTERVAL AS dispatchInterval, " +
+                            "    r.REGION AS region, " +
+                            "    r.FLAG AS flag " +
+                            "FROM CRSS_AP_FLAG_RTD_TEST r " +
+                            "WHERE r.TIME_INTERVAL >= :startDate " +
+                            "AND r.TIME_INTERVAL <= :endDate",
+            nativeQuery = true
+    )
+    List<APProjection> getAPData(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
 
 }

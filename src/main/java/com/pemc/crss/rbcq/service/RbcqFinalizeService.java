@@ -1,5 +1,6 @@
 package com.pemc.crss.rbcq.service;
 
+import com.pemc.crss.rbcq.dto.APDTO;
 import com.pemc.crss.rbcq.dto.RspotAggResult;
 import com.pemc.crss.rbcq.dto.ViewDTO;
 import com.pemc.crss.rbcq.entity.*;
@@ -74,7 +75,8 @@ public class RbcqFinalizeService {
         log.info("=== End RBCQ Finalization ===");
     }
     @Transactional
-    public void processAP(LocalDateTime from, LocalDateTime to, String userId,String region) {
+    public void processAP(LocalDateTime from, LocalDateTime to,String region) {
+
         log.info("=== Start RBCQ AP Flagging ===");
 
         calculateAndSave(from,to);
@@ -83,9 +85,12 @@ public class RbcqFinalizeService {
         log.info("end: {}", to);
         log.info("region: {}", region);
 
+        String linkedUserName = securityAuditorAware.getCurrentUsername()
+                .orElseThrow(() -> new RuntimeException("User not authenticated"));
 
 
-        int rowsInsertedAP = rbcqFinalRepository.insertAPFlag(from,to,region,userId,"Y");
+
+        int rowsInsertedAP = rbcqFinalRepository.insertAPFlag(from,to,region,linkedUserName,"Y");
 
         log.info("Rows inserted into AP FLAG: {}", rowsInsertedAP);
 
@@ -105,10 +110,31 @@ public class RbcqFinalizeService {
         Long linkedUserId = securityAuditorAware.getCurrentAuditor()
                 .orElseThrow(() -> new RuntimeException("User not authenticated"));
 
+
+
+        System.out.println("linkedUserId: " + linkedUserId);
+
+
         List<ViewDTO> result = crssRepository.getFinalData(linkedUserId, startDate, endDate);
 
 
         return result;
     }
 
+    public List<APDTO> getFlaggedData(
+            LocalDateTime startDate,
+            LocalDateTime endDate) {
+
+        Long linkedUserId = securityAuditorAware.getCurrentAuditor()
+                .orElseThrow(() -> new RuntimeException("User not authenticated"));
+
+        return rbcqFinalRepository.getAPData(startDate, endDate)
+                .stream()
+                .map(x -> APDTO.builder()
+                        .dispatchInterval(x.getDispatchInterval())
+                        .region(x.getRegion())
+                        .flag(x.getFlag())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }

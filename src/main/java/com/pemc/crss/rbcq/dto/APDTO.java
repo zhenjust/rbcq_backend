@@ -1,6 +1,5 @@
 package com.pemc.crss.rbcq.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,18 +11,9 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ViewDTO {
+public class APDTO {
 
-    LocalDateTime dispatch_interval;
-
-    String region;
-
-    String mtn;
-    String category;
-
-    String bcq;
-
-    String flag;
-
-
+    private LocalDateTime dispatchInterval;
+    private String region;
+    private String flag;
 }

@@ -1,5 +1,6 @@
 package com.pemc.crss.rbcq.resource;
 
+import com.pemc.crss.rbcq.dto.APDTO;
 import com.pemc.crss.rbcq.dto.RequestDTO;
 import com.pemc.crss.rbcq.dto.ViewDTO;
 import com.pemc.crss.rbcq.entity.FinalizeEntity;
@@ -147,11 +148,13 @@ public class RbcqResource {
 
         String userId = request.getUserId();
         log.info("Regions: {}", request.getRegions());
+        log.info("User: {}", userId);
         List<String> regions = request.getRegions();
         String region = String.join(",", regions);
         log.info("Region parameter: {}", region);
 
-        rbcqFinalizeService.processAP(from, to, userId,region);
+
+        rbcqFinalizeService.processAP(from, to,region);
 
         return ResponseEntity.ok("AP Flagging successfully");
     }
@@ -190,6 +193,28 @@ public class RbcqResource {
 
         List<ViewDTO> result =
                 rbcqFinalizeService.getFinalData(fromDate, toDate);
+
+        System.out.println("================================");
+        System.out.println("START DATE: " + fromDate);
+        System.out.println("END DATE: " + toDate);
+        System.out.println("RESULT SIZE: " + result.size());
+        System.out.println("RESULT: " + result);
+        System.out.println("================================");
+
+        return result;
+    }
+
+    @GetMapping("/getFlaggedData")
+    public List<APDTO> getAP(
+            @RequestParam String startDate,
+            @RequestParam String endDate
+    ) {
+
+        LocalDateTime fromDate = LocalDateTime.parse(startDate);
+        LocalDateTime toDate = LocalDateTime.parse(endDate);
+
+        List<APDTO> result =
+                rbcqFinalizeService.getFlaggedData(fromDate, toDate);
 
         System.out.println("================================");
         System.out.println("START DATE: " + fromDate);
