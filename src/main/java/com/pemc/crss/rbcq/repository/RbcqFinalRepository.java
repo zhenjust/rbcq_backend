@@ -88,13 +88,12 @@ public interface RbcqFinalRepository extends JpaRepository<FinalizeEntity,Long> 
                             "INNER JOIN TEMP_RSPOTQ_AGG_TEST s " +
                             "  ON a.TIME_INTERVAL = s.TIME_INTERVAL " +
                             " AND a.REGION_NAME = s.REGION_NAME " +
-                            " AND a.COMMODITY_TYPE = s.COMMODITY_TYPE ",
-
+                            " AND a.COMMODITY_TYPE = s.COMMODITY_TYPE",
             nativeQuery = true
     )
     int insertToRbcqFinal(
             @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
+            @Param("to")   LocalDateTime to,
             @Param("userId") String userId
     );
 
@@ -183,6 +182,7 @@ public interface RbcqFinalRepository extends JpaRepository<FinalizeEntity,Long> 
                             "    FROM RBCQ_INITIAL_TEST " +
                             "    WHERE TIME_INTERVAL >= :from " +
                             "      AND TIME_INTERVAL <= :to " +
+                            "      AND ( :region = 'ALL' OR REGION_NAME = :region ) " +
 
                             "    UNION ALL " +
 
@@ -196,59 +196,34 @@ public interface RbcqFinalRepository extends JpaRepository<FinalizeEntity,Long> 
                             "    WHERE TIME_INTERVAL >= :from " +
                             "      AND TIME_INTERVAL <= :to " +
                             "      AND COMMODITY_TYPE = 'REG' " +
+                            "      AND ( :region = 'ALL' OR REGION_NAME = :region ) " +
 
-                            ") a " +
-
-                            "INNER JOIN CRSS_AP_FLAG_RTD_TEST ap " +
-                            "    ON a.TIME_INTERVAL = ap.TIME_INTERVAL " +
-                            "   AND a.REGION_NAME = ap.REGION " +
-                            "   AND ap.FLAG = 'Y' " +
-                            "   AND ap.TIME_INTERVAL >= :from " +
-                            "   AND ap.TIME_INTERVAL <= :to",
-
+                            ") a",
             nativeQuery = true
     )
     int applyAPFlag(
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
+            @Param("region") String region,
             @Param("userId") String userId
     );
 
     @Modifying
     @Transactional
     @Query(
-            value =
-                    "INSERT INTO CRSS_AP_FLAG_RTD_TEST " +
-                            "(TIME_INTERVAL, REGION, FLAG, PUBLISHED_BY) " +
-
-                            "SELECT " +
-                            "    CAST(:from AS TIMESTAMP) + NUMTODSINTERVAL((t.N - 1) * 5, 'MINUTE'), " +
-                            "    r.REGION, " +
-
-                            "    CASE " +
-                            "        WHEN :isAP = 'N' THEN 'N' " +
-                            "        WHEN INSTR(',' || :region || ',', ',' || r.REGION || ',') > 0 THEN 'Y' " +
-                            "        ELSE 'N' " +
-                            "    END, " +
-
-                            "    :userId " +
-
-                            "FROM " +
-                            "    ( " +
-                            "        SELECT LEVEL AS N " +
-                            "        FROM DUAL " +
-                            "        CONNECT BY CAST(:from AS TIMESTAMP) + " +
-                            "                   NUMTODSINTERVAL((LEVEL - 1) * 5, 'MINUTE') <= " +
-                            "                   CAST(:to AS TIMESTAMP) " +
-                            "    ) t " +
-
-                            "CROSS JOIN " +
-
-                            "    ( " +
-                            "        SELECT 'LUZON' AS REGION FROM DUAL " +
-                            "        UNION ALL SELECT 'VISAYAS' FROM DUAL " +
-                            "        UNION ALL SELECT 'MINDANAO' FROM DUAL " +
-                            "    ) r",
+            value = "INSERT INTO CRSS_AP_FLAG_RTD_TEST " +
+                    "(TIME_INTERVAL, REGION, FLAG, PUBLISHED_BY) " +
+                    "SELECT DISTINCT TIME_INTERVAL, REGION_NAME, " +
+                    "CASE " +
+                    "    WHEN :isAP = 'N' THEN 'N' " +
+                    "    WHEN :region = 'ALL' THEN 'Y' " +
+                    "    WHEN REGION_NAME = :region THEN 'Y' " +
+                    "    ELSE 'N' " +
+                    "END, " +
+                    " :userId " +
+                    "FROM RBCQ_INITIAL_TEST " +
+                    "WHERE TIME_INTERVAL >= :from " +
+                    "AND TIME_INTERVAL <= :to",
             nativeQuery = true
     )
     int insertAPFlag(
@@ -271,21 +246,6 @@ public interface RbcqFinalRepository extends JpaRepository<FinalizeEntity,Long> 
     );
 
 
-
-//    // AP FLAG OVERRIDE
-//                            "WHERE " +
-//                                    "    NOT EXISTS ( " +
-//                                    "        SELECT 1 " +
-//                                    "        FROM CRSS_AP_FLAG_RTD_TEST ap " +
-//                                    "        WHERE ap.TIME_INTERVAL = a.TIME_INTERVAL " +
-//                                    "          AND ap.REGION = a.REGION_NAME " +
-//                                    "    ) " +
-//                                    "    OR EXISTS ( " +
-//                                    "        SELECT 1 " +
-//                                    "        FROM CRSS_AP_FLAG_RTD_TEST ap " +
-//                                    "        WHERE ap.TIME_INTERVAL = a.TIME_INTERVAL " +
-//                                    "          AND ap.REGION = a.REGION_NAME " +
-//                                    "          AND ap.FLAG = 'N' " +
 
 
 }

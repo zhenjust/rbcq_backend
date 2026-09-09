@@ -81,7 +81,6 @@ public class RbcqAuditService {
 
 
 
-
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -96,6 +95,7 @@ public class RbcqAuditService {
                 entry.setFileName(fileName); // ✅
                 entry.setFileDate(fileDateTime);
                 entry.setPublishDate(LocalDateTime.now());
+
 
                 entries.add(entry);
             }

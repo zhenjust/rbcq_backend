@@ -54,16 +54,7 @@ public class RbcqResource {
             log.info("Validated Region: {}, Start Date: {}, End Date: {}",
                     result.getRegion(), result.getDateStart(), result.getDateEnd());
 
-            LocalDate startDateValue = result.getDateStart();
-            LocalDateTime startDate = startDateValue.atTime(0, 5, 0);
-            LocalDateTime endDate = startDateValue.plusDays(1).atStartOfDay();
-
             rbcqAuditService.importFromCsv(file.getInputStream(), fileName);
-            rbcqInitialService.runInitialization(startDate,endDate,"SYSTEM");
-            log.info("✅ RBCQ Initial completed.");
-
-            rbcqFinalizeService.finalizeRbcq(startDate, endDate, "SYSTEM");
-            log.info("✅ RBCQ Finalization completed.");
             return ResponseEntity.ok("CSV import successful: " + fileName);
 
         } catch (Exception e) {
@@ -146,12 +137,8 @@ public class RbcqResource {
                 request.getEndDatetime();
 
         String userId = request.getUserId();
-        log.info("Regions: {}", request.getRegions());
-        List<String> regions = request.getRegions();
-        String region = String.join(",", regions);
-        log.info("Region parameter: {}", region);
 
-        rbcqFinalizeService.processAP(from, to, userId,region);
+        rbcqFinalizeService.processAP(from, to, userId,request.getRegion());
 
         return ResponseEntity.ok("AP Flagging successfully");
     }
@@ -183,22 +170,13 @@ public class RbcqResource {
     public List<ViewDTO> getMtns(
             @RequestParam String startDate,
             @RequestParam String endDate
+
     ) {
 
         LocalDateTime fromDate = LocalDateTime.parse(startDate);
         LocalDateTime toDate = LocalDateTime.parse(endDate);
 
-        List<ViewDTO> result =
-                rbcqFinalizeService.getFinalData(fromDate, toDate);
-
-        System.out.println("================================");
-        System.out.println("START DATE: " + fromDate);
-        System.out.println("END DATE: " + toDate);
-        System.out.println("RESULT SIZE: " + result.size());
-        System.out.println("RESULT: " + result);
-        System.out.println("================================");
-
-        return result;
+        return rbcqFinalizeService.getFinalData( fromDate,toDate);
     }
 
 

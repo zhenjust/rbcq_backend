@@ -113,13 +113,9 @@ registration:
 
 rbcq:
   storage:
-    host: 10.175.175.107
-    port: 22
-    username: todi
-    password: todi
-    upload-path: /rbcq
-    processed-path: /rbcq/processed
-    rejected-path: /rbcq/rejected
+    upload-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath
+    processed-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath/processed
+    rejected-path: C:/Users/ISPD-IEMOP-CRSS/Desktop/sampleBCQPath/rejected
 
 app:
   api-key: i3m0p
