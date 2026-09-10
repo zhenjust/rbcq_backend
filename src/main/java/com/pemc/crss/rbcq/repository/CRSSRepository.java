@@ -5,6 +5,8 @@ import com.pemc.crss.rbcq.dto.ViewDTO;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Array;
@@ -34,28 +36,48 @@ public class CRSSRepository {
 
     public List<ViewDTO> getFinalData(Long linkedUserId, LocalDateTime startDate, LocalDateTime endDate) {
 
-        List<String> mtns = getMtns(linkedUserId, startDate, endDate);
-        System.out.println(mtns);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (mtns.isEmpty()) {
-            return Collections.emptyList();
-        }
+        boolean authorized = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("NGCP_SO_RBCQ"));
 
-        // 🔥 Build dynamic placeholders (?, ?, ?, ...)
-        String inSql = String.join(",", Collections.nCopies(mtns.size(), "?"));
-
-        String sql = "SELECT dispatch_interval, region, mtn, category, bcq " +
-                "FROM nmms.txn_reserve_bcq " +
-                "WHERE mtn IN (" + inSql + ") " +
-                "AND dispatch_interval >= ? " +
-                "AND dispatch_interval <= ? " +
-                "ORDER BY dispatch_interval ASC";;
-
-
+        String sql;
         List<Object> params = new ArrayList<>();
-        params.addAll(mtns);
-        params.add(startDate);
-        params.add(endDate);
+
+        if (authorized) {
+
+            // Authorized: retrieve all data, no MTN filter
+            sql = "SELECT dispatch_interval, region, mtn, category, bcq " +
+                    "FROM nmms.txn_reserve_bcq " +
+                    "WHERE dispatch_interval >= ? " +
+                    "AND dispatch_interval <= ? " +
+                    "ORDER BY dispatch_interval ASC";
+
+            params.add(startDate);
+            params.add(endDate);
+
+        } else {
+
+            // Unauthorized: retrieve only user's MTNs
+            List<String> mtns = getMtns(linkedUserId, startDate, endDate);
+
+            if (mtns.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            String inSql = String.join(",", Collections.nCopies(mtns.size(), "?"));
+
+            sql = "SELECT dispatch_interval, region, mtn, category, bcq " +
+                    "FROM nmms.txn_reserve_bcq " +
+                    "WHERE mtn IN (" + inSql + ") " +
+                    "AND dispatch_interval >= ? " +
+                    "AND dispatch_interval <= ? " +
+                    "ORDER BY dispatch_interval ASC";
+
+            params.addAll(mtns);
+            params.add(startDate);
+            params.add(endDate);
+        }
 
         return settlementJdbcTemplate.query(
                 sql,

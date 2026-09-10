@@ -102,5 +102,3 @@ public interface InitialRepository extends JpaRepository <InitialEntity,Long> {
 
 
 }
-
-
