@@ -60,7 +60,7 @@ maven-package:
 docker-push:
   stage: release
   script:
-    - ./mvnw -ntp jib:build -Djib.to.image=$EXIST_REGISTRY/iemop/$SERVICE_NAME:$APP_VERSION-b${CI_COMMIT_SHA:0:7} $JIB_FROM -Djib.from.auth.username=$EXIST_REGISTRY_USERNAME -Djib.from.auth.password=$EXIST_REGISTRY_PASSWORD -Djib.to.auth.username=$EXIST_REGISTRY_USERNAME -Djib.to.auth.password=$EXIST_REGISTRY_PASSWORD -Dmaven.repo.local=$MAVEN_USER_HOME
+    - ./mvnw -ntp jib:build -Djib.to.image=$IEMOP_REGISTRY/iemop/$SERVICE_NAME:$APP_VERSION-b${CI_COMMIT_SHA:0:7} $JIB_FROM -Djib.from.auth.username=$IEMOP_REGISTRY_USERNAME -Djib.from.auth.password=$IEMOP_REGISTRY_PASSWORD -Djib.to.auth.username=$IEMOP_REGISTRY_USERNAME -Djib.to.auth.password=$IEMOP_REGISTRY_PASSWORD -Dmaven.repo.local=$MAVEN_USER_HOME
   <<: *default_rules
 
 deploy:
