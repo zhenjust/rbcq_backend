@@ -23,4 +23,6 @@ public class RequestDTO {
     private String UserId;
 
     private List<String> regions;
+
+    private List<SelectedAPInterval> selectedApInterval;
 }

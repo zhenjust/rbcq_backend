@@ -2,8 +2,11 @@ package com.pemc.crss.rbcq.resource;
 
 import com.pemc.crss.rbcq.dto.APDTO;
 import com.pemc.crss.rbcq.dto.RequestDTO;
+import com.pemc.crss.rbcq.dto.SelectedAPInterval;
 import com.pemc.crss.rbcq.dto.ViewDTO;
 import com.pemc.crss.rbcq.entity.FinalizeEntity;
+import com.pemc.crss.rbcq.repository.EMDBRepository;
+import com.pemc.crss.rbcq.service.EmdbService;
 import com.pemc.crss.rbcq.service.RbcqAuditService;
 import com.pemc.crss.rbcq.service.RbcqFinalizeService;
 import com.pemc.crss.rbcq.service.RbcqInitialService;
@@ -31,6 +34,8 @@ public class RbcqResource {
     private final RbcqAuditService rbcqAuditService;
     private final RbcqInitialService rbcqInitialService;
     private final RbcqFinalizeService rbcqFinalizeService;
+
+    private final EmdbService emdbService;
 
     @PostMapping("/import")
     public ResponseEntity<String> importCsv(@RequestParam("file") MultipartFile file) {
@@ -134,6 +139,23 @@ public class RbcqResource {
         return ResponseEntity.ok("RBCQ initialize successfully");
     }
 
+    @PostMapping("/asie_reserve")
+    public ResponseEntity<String> asieReserve(
+            @RequestBody RequestDTO request) {
+
+        LocalDateTime from =
+                request.getStartDatetime();
+
+        LocalDateTime to =
+                request.getEndDatetime();
+
+        String userId = request.getUserId();
+
+        emdbService.ASIEreserve(from, to);
+
+        return ResponseEntity.ok("asie reserve process successfully");
+    }
+
     @PostMapping("/ap_flag")
     public ResponseEntity<String> processApFlag(
             @RequestBody RequestDTO request) {
@@ -235,6 +257,38 @@ public class RbcqResource {
             return getRootCause(cause);
         }
         return throwable;
+    }
+
+    @PostMapping("/asie_reserve_ap")
+    public ResponseEntity<String> asie_reserve(
+            @RequestBody RequestDTO request) {
+
+        LocalDateTime from =
+                request.getStartDatetime();
+
+        LocalDateTime to =
+                request.getEndDatetime();
+
+
+        List<SelectedAPInterval> selectedRows =
+                request.getSelectedApInterval();
+
+        log.info("Selected AP Intervals: {}", selectedRows);
+
+        // Delete ASIE incidental data except selected AP intervals
+        emdbService.deleteASIEreserve(
+                from,
+                to,
+                selectedRows
+        );
+
+        emdbService.ASIEReserveAP( from,
+                to,
+                selectedRows);
+
+
+
+        return ResponseEntity.ok("AP Flagging successfully");
     }
 
 }
