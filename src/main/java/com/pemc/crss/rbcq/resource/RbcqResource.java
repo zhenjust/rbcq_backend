@@ -2,7 +2,6 @@ package com.pemc.crss.rbcq.resource;
 
 import com.pemc.crss.rbcq.dto.APDTO;
 import com.pemc.crss.rbcq.dto.RequestDTO;
-import com.pemc.crss.rbcq.dto.SelectedAPInterval;
 import com.pemc.crss.rbcq.dto.ViewDTO;
 import com.pemc.crss.rbcq.entity.FinalizeEntity;
 import com.pemc.crss.rbcq.repository.EMDBRepository;
@@ -13,7 +12,9 @@ import com.pemc.crss.rbcq.service.RbcqInitialService;
 import com.pemc.crss.rbcq.util.FilenameValidator;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -270,25 +271,47 @@ public class RbcqResource {
                 request.getEndDatetime();
 
 
-        List<SelectedAPInterval> selectedRows =
-                request.getSelectedApInterval();
 
-        log.info("Selected AP Intervals: {}", selectedRows);
 
-        // Delete ASIE incidental data except selected AP intervals
-        emdbService.deleteASIEreserve(
+
+        emdbService.deleteASIEreserveAP(
                 from,
-                to,
-                selectedRows
+                to
         );
 
         emdbService.ASIEReserveAP( from,
-                to,
-                selectedRows);
+                to
+             );
 
 
 
         return ResponseEntity.ok("AP Flagging successfully");
+    }
+
+    @PostMapping("/download-asie")
+    public ResponseEntity<byte[]> downloadASIE(
+            @RequestParam String startDatetime,
+            @RequestParam String endDatetime) {
+
+        LocalDateTime from = LocalDateTime.parse(startDatetime);
+        LocalDateTime to = LocalDateTime.parse(endDatetime);
+
+        String fileName =
+                "ASIE_" +
+                        from.toLocalDate() +
+                        "_" +
+                        to.toLocalDate() +
+                        ".csv";
+
+        byte[] csv = emdbService.downloadASIEToCsv(from, to);
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + fileName + "\""
+                )
+                .contentType(MediaType.parseMediaType("text/csv"))
+                .body(csv);
     }
 
 }

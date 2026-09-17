@@ -1,5 +1,6 @@
 package com.pemc.crss.rbcq.repository;
 
+import com.pemc.crss.rbcq.dto.ASIEProjection;
 import com.pemc.crss.rbcq.entity.ASIncidentalEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -198,24 +199,12 @@ public interface EMDBRepository extends JpaRepository<ASIncidentalEntity, Long> 
                             "    AND ap.FLAG = 'Y' " +
                             "    AND ap.TIME_INTERVAL >= :startDateTime " +
                             "    AND ap.TIME_INTERVAL <= :endDateTime " +
-                            ") " +
-
-                            "AND NOT ( " +
-                            "    (tai.TIME_INTERVAL, tai.REGION_NAME) IN ( " +
-                            "        SELECT ap2.TIME_INTERVAL, ap2.REGION " +
-                            "        FROM CRSS_AP_FLAG_RTD_TEST ap2 " +
-                            "        WHERE ap2.FLAG = 'Y' " +
-                            "        AND ap2.TIME_INTERVAL IN (:selectedIntervals) " +
-                            "        AND ap2.REGION IN (:selectedRegions) " +
-                            "    ) " +
                             ")",
             nativeQuery = true
     )
     int deleteASIEreserveWithAP(
             @Param("startDateTime") LocalDateTime startDateTime,
-            @Param("endDateTime") LocalDateTime endDateTime,
-            @Param("selectedIntervals") List<LocalDateTime> selectedIntervals,
-            @Param("selectedRegions") List<String> selectedRegions
+            @Param("endDateTime") LocalDateTime endDateTime
     );
 
     @Modifying
@@ -224,7 +213,7 @@ public interface EMDBRepository extends JpaRepository<ASIncidentalEntity, Long> 
             value =
                     "INSERT INTO CRSS_TOD.TOCMS_AS_INCIDENTAL " +
                             "    (TIME_INTERVAL, REGION_NAME, RESOURCE_NAME, COMMODITY_TYPE, " +
-                            "     ASIE_MWH, REMARKS, CREATED_DATE, PUBLISHED_BY) " +
+                            "     MWH, REMARKS, CREATED_DATE, PUBLISHED_BY) " +
 
                             "WITH MQ_MWH AS (" +
                             "    SELECT a.TIME_INTERVAL, b.REGION, b.PRICING_FLAG, " +
@@ -249,7 +238,7 @@ public interface EMDBRepository extends JpaRepository<ASIncidentalEntity, Long> 
                             "           WHEN a.MWH = 0 THEN 0 " +
                             "           WHEN b.DAAS_MWH < a.MWH THEN b.DAAS_MWH " +
                             "           ELSE a.MWH " +
-                            "       END, 11) AS ASIE_MWH, " +
+                            "       END, 11) AS MWH, " +
                             "       'Reserve Market AP' AS REMARKS, " +
                             "       SYSDATE AS CREATED_DATE, " +
                             "       :publishedBy AS PUBLISHED_BY " +
@@ -265,8 +254,6 @@ public interface EMDBRepository extends JpaRepository<ASIncidentalEntity, Long> 
 
                             "WHERE a.TIME_INTERVAL >= :startDateTime " +
                             "AND a.TIME_INTERVAL <= :endDateTime " +
-                            "AND a.TIME_INTERVAL IN (:selectedIntervals) " +
-                            "AND a.REGION IN (:selectedRegions) " +
                             "AND a.PRICING_FLAG = 'AP' " +
 
                             "ORDER BY a.TIME_INTERVAL",
@@ -275,8 +262,36 @@ public interface EMDBRepository extends JpaRepository<ASIncidentalEntity, Long> 
     int ASIEreserveWithAP(
             @Param("startDateTime") LocalDateTime startDateTime,
             @Param("endDateTime") LocalDateTime endDateTime,
-            @Param("selectedIntervals") List<LocalDateTime> selectedIntervals,
-            @Param("selectedRegions") List<String> selectedRegions,
             @Param("publishedBy") String publishedBy
+    );
+
+    @Query(
+            value =
+                    "SELECT tai.TIME_INTERVAL AS timeInterval, " +
+                            "       tai.REGION_NAME AS regionName, " +
+                            "       tai.RESOURCE_NAME AS resourceName, " +
+                            "       tai.COMMODITY_TYPE AS commodityType, " +
+                            "       tai.MWH AS mwh, " +
+                            "       tai.REMARKS AS remarks, " +
+                            "       tai.CREATED_DATE AS createdDate, " +
+                            "       tai.PUBLISHED_BY AS publishedBy " +
+                            "FROM CRSS_TOD.TOCMS_AS_INCIDENTAL tai " +
+                            "WHERE tai.TIME_INTERVAL >= :startDateTime " +
+                            "AND tai.TIME_INTERVAL <= :endDateTime " +
+                            "AND EXISTS ( " +
+                            "    SELECT 1 " +
+                            "    FROM CRSS_AP_FLAG_RTD_TEST ap " +
+                            "    WHERE tai.TIME_INTERVAL = ap.TIME_INTERVAL " +
+                            "    AND tai.REGION_NAME = ap.REGION " +
+                            "    AND ap.FLAG = 'Y' " +
+                            "    AND ap.TIME_INTERVAL >= :startDateTime " +
+                            "    AND ap.TIME_INTERVAL <= :endDateTime " +
+                            ") " +
+                            "ORDER BY tai.TIME_INTERVAL",
+            nativeQuery = true
+    )
+    List<ASIEProjection> getASIEreserveWithAP(
+            @Param("startDateTime") LocalDateTime startDateTime,
+            @Param("endDateTime") LocalDateTime endDateTime
     );
 }
